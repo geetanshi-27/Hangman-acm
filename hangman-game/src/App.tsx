@@ -17,6 +17,8 @@ function App() {
 
   const [round, setRound] = useState(1)
   const [score, setScore] = useState(0)
+  const [gameOver, setGameOver] = useState(false)
+
 
   const [showRestartPopup, setShowRestartPopup] = useState(false)
 
@@ -39,7 +41,7 @@ function App() {
   function addGuessedLetter(letter: string) {
     const lower = letter.toLowerCase()
 
-    if (guessedLetters.includes(lower) || isLoser || isWinner || gameFinished) return
+    if (guessedLetters.includes(lower) || isLoser || isWinner || gameOver) return
     setGuessedLetters(current => [...current, lower])
   }
 
@@ -47,6 +49,7 @@ function App() {
   setGuessedLetters([])
   setWordObj(getRandomWord())
   setShowHintPopup(false)
+  setGameOver(false)
 
   if (nextRound) {
     setRound(r => r + 1)
@@ -54,6 +57,16 @@ function App() {
     setRound(1)
   }
 }
+
+function newMatch() {
+  setRound(1)
+  setScore(0)
+  setGameOver(false)
+  setGuessedLetters([])
+  setWordObj(getRandomWord())
+}
+
+
   // keyboard input
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
@@ -77,7 +90,7 @@ function App() {
 
       const timer = setTimeout(() => {
         setShowHintPopup(false)
-      }, 1000)
+      }, 800)
 
       return () => clearTimeout(timer)
     }
@@ -89,13 +102,16 @@ function App() {
 
   // ROUND LOGIC
   useEffect(() => {
+  if (gameOver) return
+
   if (isWinner) {
     if (round === maxRounds) {
-      setScore(s => s + 10)
+      setScore(10)
+      setGameOver(true)
     } else {
       setTimeout(() => {
         resetGame(true)
-      }, 1000)
+      }, 500)
     }
   }
 
@@ -105,17 +121,28 @@ function App() {
     setTimeout(() => {
       setShowRestartPopup(false)
       resetGame()
-    }, 2000)
+    }, 1500)
   }
-}, [isWinner, isLoser])
+}, [isWinner, isLoser, round, gameOver])
+
+
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 text-white">
 
-      <header className="w-full flex items-center justify-between mb-10">
-        <img src="/acm-logo.png" alt="ACM Logo" className="h-12" />
-        <h1 className="text-3xl font-bold">Challenge</h1>
-      </header>
+      <header className="w-full flex items-center justify-center mb-10">
+  <h1 className="text-3xl font-bold tracking-[0.35em] ml-[1100px] mt-[20px]">HANGMAN</h1>
+</header>
+
+<img
+  src="/acm.png"
+  alt="ACM Logo"
+  className="absolute top-6 left-14 h-24"
+/>
+
+
+
+
 
       <div className="flex-1 flex items-center justify-center">
 
@@ -195,7 +222,7 @@ function App() {
 )}
 
       {/* FINAL GAME WIN */}
-      {gameFinished && (
+      {gameOver && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/60 z-50">
           <div className="bg-indigo-950/80 border border-indigo-500 px-10 py-8 rounded-2xl shadow-xl text-center w-[380px]">
 
@@ -203,16 +230,17 @@ function App() {
               Mission Complete 🚀
             </h2>
 
-            <p className="text-lg mb-6 text-slate-200">
-              Score: <span className="text-white font-bold">{score}</span>
+            <p className="text-lg mb-5 text-slate-200">
+              Score: <span className="text-white font-bold ">{score}</span>
             </p>
-
             <button
-              onClick={() => resetGame(true)}
-              className="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 transition rounded-lg text-white font-semibold"
-            >
-              Play Again
-            </button>
+  onClick={newMatch}
+  className="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 transition rounded-lg text-white font-semibold"
+>
+Start New Match
+</button>
+
+            
 
           </div>
         </div>
